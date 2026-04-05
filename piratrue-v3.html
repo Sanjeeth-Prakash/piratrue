@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PIRATRUE — Piracy Is True Freedom</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#080808;--bg2:#111;--bg3:#1a1a1a;--bg4:#222;
+  --red:#e63946;--red-dim:rgba(230,57,70,0.12);
+  --gold:#f4a261;--text:#f0ece4;--muted:#666;--muted2:#444;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
+  --sidebar:220px;
+}
+body{background:var(--bg);color:var(--text);font-family:'Manrope',sans-serif;min-height:100vh;overflow-x:hidden;}
+
+/* ── TOPNAV ── */
+.topnav{
+  position:fixed;top:0;left:0;right:0;height:52px;z-index:200;
+  background:rgba(8,8,8,0.97);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 1.5rem;gap:1rem;
+  backdrop-filter:blur(10px);
+}
+.topnav-logo{font-family:'Anton',sans-serif;font-size:1.15rem;letter-spacing:.08em;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.chain{display:flex;align-items:center;}
+.chain span{display:inline-block;width:11px;height:7px;border:2px solid var(--red);border-radius:3px;}
+.chain i{display:inline-block;width:5px;border-top:1.5px dashed var(--red);opacity:.5;}
+.search-trigger{
+  flex:1;max-width:460px;margin:0 auto;
+  display:flex;align-items:center;gap:8px;
+  background:var(--bg2);border:1px solid var(--border2);border-radius:7px;
+  padding:6px 14px;cursor:pointer;color:var(--muted);
+  font-size:.78rem;font-family:'IBM Plex Mono',monospace;transition:border-color .15s;
+}
+.search-trigger:hover{border-color:var(--red);}
+.search-trigger .shortcut{margin-left:auto;background:var(--bg3);border:1px solid var(--border2);border-radius:3px;padding:1px 6px;font-size:.68rem;}
+.topnav-right{display:flex;align-items:center;gap:4px;margin-left:auto;}
+.icon-btn{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--muted);text-decoration:none;transition:all .15s;cursor:pointer;background:none;border:none;}
+.icon-btn:hover{background:var(--bg3);color:var(--text);}
+
+/* ── LAYOUT ── */
+.app{display:flex;padding-top:52px;min-height:100vh;}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:var(--sidebar);flex-shrink:0;
+  position:fixed;top:52px;left:0;bottom:0;
+  overflow-y:auto;border-right:1px solid var(--border);
+  background:var(--bg);padding:1rem 0;
+  display:flex;flex-direction:column;gap:2px;
+  z-index:100;
+}
+.sidebar::-webkit-scrollbar{width:4px;}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.sidebar-section{padding:0 .75rem;margin-top:.5rem;margin-bottom:.25rem;font-size:.65rem;font-family:'IBM Plex Mono',monospace;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;}
+.sidebar-link{
+  display:flex;align-items:center;gap:10px;
+  padding:7px 1rem;margin:0 .5rem;border-radius:7px;
+  text-decoration:none;color:var(--muted);font-size:.83rem;font-weight:500;
+  transition:all .15s;cursor:pointer;border:none;background:none;width:calc(100% - 1rem);text-align:left;
+}
+.sidebar-link:hover{background:var(--bg3);color:var(--text);}
+.sidebar-link.active{background:var(--red-dim);color:var(--red);border:1px solid rgba(230,57,70,.2);}
+.sidebar-link .sicon{font-size:15px;width:18px;text-align:center;flex-shrink:0;}
+
+/* ── MAIN CONTENT ── */
+.main{margin-left:var(--sidebar);flex:1;min-height:calc(100vh - 52px);}
+
+/* ── HOME PAGE ── */
+.home-hero{padding:4rem 3rem 2.5rem;}
+.home-tag{display:inline-flex;align-items:center;gap:7px;font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--red);background:var(--red-dim);border:1px solid rgba(230,57,70,.25);padding:3px 10px;border-radius:3px;margin-bottom:1.5rem;text-transform:uppercase;letter-spacing:.1em;}
+.home-tag::before{content:'';width:6px;height:6px;background:var(--red);border-radius:50%;animation:blink 1.5s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.home-title{font-family:'Anton',sans-serif;font-size:clamp(3.5rem,8vw,7rem);line-height:.92;letter-spacing:-.01em;margin-bottom:.5rem;}
+.home-title .r{color:var(--red);}
+.home-rule{width:60px;height:3px;background:var(--red);margin:1.2rem 0;}
+.home-sub{font-size:.95rem;color:var(--muted);max-width:480px;line-height:1.7;margin-bottom:2rem;}
+.home-sub strong{color:var(--text);}
+.home-btns{display:flex;gap:8px;flex-wrap:wrap;}
+.btn-red{display:inline-flex;align-items:center;gap:6px;background:var(--red);color:#fff;padding:8px 18px;border-radius:6px;text-decoration:none;font-weight:700;font-size:.82rem;border:none;cursor:pointer;font-family:'Manrope',sans-serif;transition:opacity .15s;}
+.btn-red:hover{opacity:.85;}
+.btn-ghost{display:inline-flex;align-items:center;gap:6px;background:transparent;color:var(--text);padding:8px 18px;border-radius:6px;text-decoration:none;font-weight:600;font-size:.82rem;border:1px solid var(--border2);transition:all .15s;cursor:pointer;font-family:'Manrope',sans-serif;}
+.btn-ghost:hover{background:var(--bg3);}
+
+.home-grid-label{padding:0 3rem;margin-bottom:1.2rem;display:flex;align-items:center;gap:12px;}
+.home-grid-label span{font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;}
+.home-grid-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.home-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.home-card{
+  background:var(--bg2);padding:1.3rem 1.5rem;
+  text-decoration:none;display:flex;flex-direction:column;gap:7px;
+  transition:background .15s;cursor:pointer;border:none;text-align:left;color:inherit;
+  position:relative;overflow:hidden;
+}
+.home-card:hover{background:var(--bg3);}
+.home-card.featured{border-left:2px solid var(--red);background:linear-gradient(135deg,#130a0a,#1a0a0a);}
+.home-card.featured:hover{background:#1f0c0c;}
+.home-card-top{display:flex;align-items:center;justify-content:space-between;}
+.hc-icon{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;background:var(--bg3);border:1px solid var(--border2);}
+.hc-arrow{color:var(--muted);opacity:0;transform:translateX(-4px);transition:all .2s;font-size:14px;}
+.home-card:hover .hc-arrow{opacity:1;transform:translateX(0);}
+.hc-name{font-weight:700;font-size:.9rem;color:var(--text);}
+.hc-desc{font-size:.75rem;color:var(--muted);line-height:1.5;}
+.hc-tag{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--red);background:var(--red-dim);border-radius:3px;padding:2px 5px;align-self:flex-start;}
+
+/* ── INNER PAGE ── */
+.page-header{padding:2.5rem 3rem 1.5rem;border-bottom:1px solid var(--border);}
+.page-breadcrumb{font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--muted);margin-bottom:.75rem;display:flex;align-items:center;gap:6px;}
+.page-breadcrumb a{color:var(--muted);text-decoration:none;}
+.page-breadcrumb a:hover{color:var(--text);}
+.page-title{font-family:'Anton',sans-serif;font-size:2.8rem;letter-spacing:.02em;margin-bottom:.4rem;}
+.page-title .r{color:var(--red);}
+.page-desc{font-size:.88rem;color:var(--muted);max-width:520px;line-height:1.6;}
+
+/* ── SEARCH BAR (inner page) ── */
+.page-search{padding:1.5rem 3rem;border-bottom:1px solid var(--border);}
+.search-wrap{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:10px 16px;max-width:600px;transition:border-color .15s;}
+.search-wrap:focus-within{border-color:var(--red);}
+.search-wrap input{flex:1;background:none;border:none;color:var(--text);font-size:.9rem;font-family:'Manrope',sans-serif;outline:none;}
+.search-wrap input::placeholder{color:var(--muted);}
+.search-sources{display:flex;gap:6px;margin-top:.75rem;flex-wrap:wrap;}
+.source-badge{font-family:'IBM Plex Mono',monospace;font-size:.65rem;padding:2px 8px;border-radius:3px;border:1px solid var(--border2);color:var(--muted);}
+.source-badge.fitgirl{color:#e63946;background:rgba(230,57,70,.1);border-color:rgba(230,57,70,.2);}
+.source-badge.dodi{color:#f4a261;background:rgba(244,162,97,.1);border-color:rgba(244,162,97,.2);}
+.source-badge.tpb{color:#60a5fa;background:rgba(96,165,250,.1);border-color:rgba(96,165,250,.2);}
+
+/* ── TRENDING ── */
+.section-wrap{padding:2rem 3rem;}
+.section-title{font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-bottom:1rem;display:flex;align-items:center;gap:10px;}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.results-list{display:flex;flex-direction:column;gap:6px;}
+.result-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:11px 14px;background:var(--bg2);border:1px solid var(--border);
+  border-radius:8px;text-decoration:none;transition:all .15s;gap:12px;
+}
+.result-item:hover{background:var(--bg3);border-color:var(--border2);}
+.result-left{flex:1;min-width:0;}
+.result-title{font-size:.88rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;}
+.result-meta{display:flex;align-items:center;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--muted);}
+.result-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.src-pill{font-family:'IBM Plex Mono',monospace;font-size:.65rem;padding:3px 8px;border-radius:3px;}
+.src-fitgirl{background:rgba(230,57,70,.15);color:#e63946;}
+.src-dodi{background:rgba(244,162,97,.15);color:#f4a261;}
+.src-tpb{background:rgba(96,165,250,.15);color:#60a5fa;}
+.seed-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;flex-shrink:0;}
+.seed-dot.low{background:#f59e0b;}
+.seed-dot.dead{background:#666;}
+
+/* loading / empty */
+.loading-row{display:flex;align-items:center;gap:10px;padding:1.5rem 0;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:.8rem;}
+.spinner{width:14px;height:14px;border:2px solid var(--border2);border-top-color:var(--red);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-msg{color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:.8rem;padding:1.5rem 0;}
+
+/* streaming page — static list */
+.site-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;}
+.site-card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:1rem 1.2rem;text-decoration:none;transition:all .15s;display:block;}
+.site-card:hover{background:var(--bg3);border-color:var(--border2);}
+.site-card-name{font-weight:700;font-size:.9rem;color:var(--text);margin-bottom:4px;}
+.site-card-desc{font-size:.75rem;color:var(--muted);line-height:1.5;}
+.site-card-tag{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:.62rem;margin-top:6px;padding:2px 6px;border-radius:3px;background:rgba(96,165,250,.1);color:#60a5fa;}
+
+/* ── GLOBAL SEARCH OVERLAY ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:flex-start;justify-content:center;padding-top:90px;}
+.overlay.open{display:flex;}
+.search-box{width:100%;max-width:640px;background:var(--bg2);border:1px solid var(--border2);border-radius:10px;overflow:hidden;}
+.search-row{display:flex;align-items:center;gap:10px;padding:13px 18px;border-bottom:1px solid var(--border);}
+.search-row input{flex:1;background:none;border:none;color:var(--text);font-size:.95rem;font-family:'IBM Plex Mono',monospace;outline:none;}
+.search-row input::placeholder{color:var(--muted);}
+.search-body{padding:8px;max-height:440px;overflow-y:auto;min-height:80px;display:flex;flex-direction:column;}
+.search-footer{border-top:1px solid var(--border);padding:8px 18px;display:flex;gap:14px;font-size:.7rem;color:var(--muted2);font-family:'IBM Plex Mono',monospace;}
+.search-footer kbd{background:var(--bg3);border:1px solid var(--border2);border-radius:3px;padding:1px 5px;color:var(--muted);}
+
+/* ── MISC ── */
+.page-hidden{display:none;}
+.stats-row{display:flex;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin:0 3rem 0;}
+.stat{flex:1;padding:.9rem 1.2rem;border-right:1px solid var(--border);}
+.stat:last-child{border-right:none;}
+.stat-n{font-family:'Anton',sans-serif;font-size:1.4rem;color:var(--red);}
+.stat-l{font-family:'IBM Plex Mono',monospace;font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:1px;}
+.bottom-bar{padding:1.5rem 3rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;margin-top:3rem;}
+.bottom-logo{font-family:'Anton',sans-serif;font-size:.9rem;letter-spacing:.08em;color:var(--muted);}
+.bottom-note{font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--muted2);}
+
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);}
+  .main{margin-left:0;}
+  .home-grid{grid-template-columns:1fr 1fr;}
+  .home-hero,.page-header,.page-search,.section-wrap{padding-left:1.5rem;padding-right:1.5rem;}
+  .stats-row,.home-grid-label,.bottom-bar{margin:0 1.5rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPNAV -->
+<nav class="topnav">
+  <a class="topnav-logo" href="#" onclick="showPage('home')">
+    <div class="chain"><span></span><i></i><span></span></div>
+    PIRA<span style="color:var(--red);">TRUE</span>
+  </a>
+  <button class="search-trigger" onclick="openSearch()">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    search everything...
+    <span class="shortcut">Ctrl K</span>
+  </button>
+  <div class="topnav-right">
+    <a class="icon-btn" href="#" title="GitHub">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+    </a>
+    <a class="icon-btn" href="#" title="Discord">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.035.056a19.924 19.924 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+    </a>
+  </div>
+</nav>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-section">Navigation</div>
+  <button class="sidebar-link active" id="sl-home" onclick="showPage('home')">
+    <span class="sicon">🏠</span> Home
+  </button>
+
+  <div class="sidebar-section" style="margin-top:.75rem;">Categories</div>
+  <button class="sidebar-link" id="sl-games" onclick="showPage('games')">
+    <span class="sicon">🎮</span> Game Repacks
+  </button>
+  <button class="sidebar-link" id="sl-software" onclick="showPage('software')">
+    <span class="sicon">🛠️</span> Software & Cracks
+  </button>
+  <button class="sidebar-link" id="sl-streaming" onclick="showPage('streaming')">
+    <span class="sicon">🎬</span> Streaming
+  </button>
+  <button class="sidebar-link" id="sl-music" onclick="showPage('music')">
+    <span class="sicon">🎵</span> Music
+  </button>
+  <button class="sidebar-link" id="sl-books" onclick="showPage('books')">
+    <span class="sicon">📚</span> Books & Reading
+  </button>
+  <button class="sidebar-link" id="sl-privacy" onclick="showPage('privacy')">
+    <span class="sicon">🛡️</span> Privacy & Adblock
+  </button>
+  <button class="sidebar-link" id="sl-mobile" onclick="showPage('mobile')">
+    <span class="sicon">📱</span> Android & iOS
+  </button>
+  <button class="sidebar-link" id="sl-ai" onclick="showPage('ai')">
+    <span class="sicon">🤖</span> AI Tools
+  </button>
+  <button class="sidebar-link" id="sl-torrenting" onclick="showPage('torrenting')">
+    <span class="sicon">🌊</span> Torrenting
+  </button>
+
+  <div class="sidebar-section" style="margin-top:.75rem;">More</div>
+  <button class="sidebar-link" onclick="">
+    <span class="sicon">📑</span> Changelog
+  </button>
+  <button class="sidebar-link" onclick="">
+    <span class="sicon">💬</span> Discord
+  </button>
+</aside>
+
+<!-- MAIN -->
+<div class="app">
+<main class="main">
+
+  <!-- ═══ HOME PAGE ═══ -->
+  <div id="page-home">
+    <div class="home-hero">
+      <div class="home-tag">April 2026 — updated daily</div>
+      <h1 class="home-title">PIRA<span class="r">TRUE</span></h1>
+      <div class="home-rule"></div>
+      <div style="display:inline-flex;align-items:flex-start;gap:8px;background:rgba(244,162,97,0.07);border:1px solid rgba(244,162,97,0.2);border-radius:6px;padding:8px 14px;margin-bottom:1.2rem;max-width:560px;">
+        <span style="font-size:13px;flex-shrink:0;margin-top:1px;">⚠️</span>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:#f4a261;line-height:1.6;">All games, apps & software here redirect to official torrent/repack pages. For safety, only use the torrent clients listed in our <button onclick="showPage('torrenting')" style="background:none;border:none;color:#f4a261;text-decoration:underline;cursor:pointer;font-family:inherit;font-size:inherit;padding:0;">Torrenting</button> section.</span>
+      </div>
+      <p class="home-sub"><strong>Piracy Is True Freedom.</strong> Because if buying doesn't mean owning, piracy isn't stealing. One place for games, software, movies & more.</p>
+      <div class="home-btns">
+        <button class="btn-red" onclick="showPage('games')">Start here</button>
+        <button class="btn-ghost">Posts</button>
+        <button class="btn-ghost">Contribute</button>
+        <button class="btn-ghost">Discord</button>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat"><div class="stat-n">12K+</div><div class="stat-l">resources</div></div>
+      <div class="stat"><div class="stat-n">3</div><div class="stat-l">repack sources</div></div>
+      <div class="stat"><div class="stat-n">100%</div><div class="stat-l">free always</div></div>
+      <div class="stat"><div class="stat-n">0</div><div class="stat-l">files hosted</div></div>
+    </div>
+
+    <div class="home-grid-label" style="margin-top:2.5rem;"><span>Browse categories</span></div>
+
+    <div class="home-grid">
+      <button class="home-card featured" onclick="showPage('games')">
+        <div class="home-card-top"><div class="hc-icon">🎮</div><span class="hc-arrow">→</span></div>
+        <div class="hc-name">Game Repacks</div>
+        <div class="hc-desc">FitGirl, DODI — search all repackers at once.</div>
+        <span class="hc-tag">LIVE SEARCH</span>
+      </button>
+      <button class="home-card featured" onclick="showPage('software')">
+        <div class="home-card-top"><div class="hc-icon">🛠️</div><span class="hc-arrow">→</span></div>
+        <div class="hc-name">Software & Cracks</div>
+        <div class="hc-desc">Adobe, Office, IDEs — cracked and ready.</div>
+        <span class="hc-tag">LIVE SEARCH</span>
+      </button>
+      <button class="home-card" onclick="showPage('streaming')">
+        <div class="home-card-top"><div class="hc-icon">🎬</div><span class="hc-arrow">→</span></div>
+        <div class="hc-name">Streaming</div>
+        <div class="hc-desc">Free movies & shows. No subscription needed.</div>
+      </button>
+      <button class="home-card" onclick="showPage('music')">
+        <div class="home-card-top"><div class="hc-icon">🎵</div><span class="hc-arrow">→</span></div>
+        <div class="hc-name">Music</div>
+        <div class="hc-desc">Albums and playlists. Forget Spotify Premium.</div>
+      </button>
+      <button class="home-card" onclick="showPage('books')">
+        <div class="home-card-top"><div class="hc-icon">📚</div><span class="hc-arrow">→</span></div>
+        <div class="hc-name">Books & Reading</div>
+        <div class="hc-desc">Ebooks, manga, comics, textbooks — free.</div>
+      </button>
+      <button class="home-card" onclick="showPage('privacy')">
+        <div class="home-card-top"><div class="hc-icon">🛡️</div><span class="hc-arrow">→</span></div>
+        <div class="hc-name">Privacy & Adblock</div>
+        <div class="hc-desc">Block ads, stay anonymous. Essential first step.</div>
+      </button>
+      <button class="home-card" onclick="showPage('mobile')">
+        <div class="home-card-top"><div class="hc-icon">📱</div><span class="hc-arrow">→</span></div>
+        <div class="hc-name">Android & iOS</div>
+        <div class="hc-desc">Modded APKs and cracked iOS apps.</div>
+      </button>
+      <button class="home-card" onclick="showPage('ai')">
+        <div class="home-card-top"><div class="hc-icon">🤖</div><span class="hc-arrow">→</span></div>
+        <div class="hc-name">AI Tools</div>
+        <div class="hc-desc">Free models and tools. No $20/month plans.</div>
+      </button>
+      <button class="home-card" onclick="showPage('torrenting')">
+        <div class="home-card-top"><div class="hc-icon">🌊</div><span class="hc-arrow">→</span></div>
+        <div class="hc-name">Torrenting</div>
+        <div class="hc-desc">Clients, indexers, guides. Sail safely.</div>
+      </button>
+    </div>
+    <div class="bottom-bar">
+      <div class="bottom-logo">PIRATRUE</div>
+      <div class="bottom-note">// this site does not host any files</div>
+    </div>
+  </div>
+
+  <!-- ═══ GAMES PAGE ═══ -->
+  <div id="page-games" class="page-hidden">
+    <div class="page-header">
+      <div class="page-breadcrumb"><a onclick="showPage('home')" style="cursor:pointer">Home</a> <span>/</span> Game Repacks</div>
+      <div class="page-title">GAME <span class="r">REPACKS</span></div>
+      <div class="page-desc">Search across FitGirl and DODI simultaneously. Click a result to open the repack page.</div>
+    </div>
+    <div class="page-search">
+      <div class="search-wrap">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="games-search-input" placeholder="Search for a game..." oninput="handleGameSearch(this.value)"/>
+      </div>
+      <div class="search-sources">
+        <span class="source-badge fitgirl">FitGirl Repacks</span>
+        <span class="source-badge dodi">DODI Repacks</span>
+      </div>
+    </div>
+    <div class="section-wrap">
+      <div class="section-title">Latest repacks</div>
+      <div class="results-list" id="games-results">
+        <div class="loading-row"><div class="spinner"></div> Loading latest repacks...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SOFTWARE PAGE ═══ -->
+  <div id="page-software" class="page-hidden">
+    <div class="page-header">
+      <div class="page-breadcrumb"><a onclick="showPage('home')" style="cursor:pointer">Home</a> <span>/</span> Software & Cracks</div>
+      <div class="page-title">SOFTWARE <span class="r">& CRACKS</span></div>
+      <div class="page-desc">Search for cracked software. Results include magnet links — click to open in your torrent client.</div>
+    </div>
+    <div class="page-search">
+      <div class="search-wrap">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="software-search-input" placeholder="Search for software (e.g. Photoshop, Office...)" oninput="handleSoftwareSearch(this.value)"/>
+      </div>
+      <div class="search-sources">
+        <span class="source-badge tpb">The Pirate Bay</span>
+      </div>
+    </div>
+    <div class="section-wrap">
+      <div class="section-title">Trending software</div>
+      <div class="results-list" id="software-results">
+        <div class="loading-row"><div class="spinner"></div> Loading trending software...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STREAMING PAGE ═══ -->
+  <div id="page-streaming" class="page-hidden">
+    <div class="page-header">
+      <div class="page-breadcrumb"><a onclick="showPage('home')" style="cursor:pointer">Home</a> <span>/</span> Streaming</div>
+      <div class="page-title">STREAM<span class="r">ING</span></div>
+      <div class="page-desc">Free streaming sites for movies, TV shows, anime and more. No account required.</div>
+    </div>
+    <div class="section-wrap">
+      <div class="section-title">Movies & TV Shows</div>
+      <div class="site-grid">
+        <a class="site-card" href="https://www.stremio.com" target="_blank"><div class="site-card-name">Stremio</div><div class="site-card-desc">Best all-in-one streaming app. Pair with Real-Debrid for everything.</div><span class="site-card-tag">APP</span></a>
+        <a class="site-card" href="https://fmovies.ps" target="_blank"><div class="site-card-name">FMovies</div><div class="site-card-desc">Huge library of movies and shows. Fast and free.</div><span class="site-card-tag">WEBSITE</span></a>
+        <a class="site-card" href="https://www.soap2day.tf" target="_blank"><div class="site-card-name">Soap2Day</div><div class="site-card-desc">Clean UI, good quality streams.</div><span class="site-card-tag">WEBSITE</span></a>
+        <a class="site-card" href="https://lookmovie2.to" target="_blank"><div class="site-card-name">LookMovie</div><div class="site-card-desc">High quality with 1080p streams available.</div><span class="site-card-tag">WEBSITE</span></a>
+        <a class="site-card" href="https://www.tubi.tv" target="_blank"><div class="site-card-name">Tubi</div><div class="site-card-desc">Completely legal and free. Ad-supported.</div><span class="site-card-tag">LEGAL FREE</span></a>
+        <a class="site-card" href="https://pluto.tv" target="_blank"><div class="site-card-name">Pluto TV</div><div class="site-card-desc">Free live TV and on-demand. No signup needed.</div><span class="site-card-tag">LEGAL FREE</span></a>
+      </div>
+      <div class="section-title" style="margin-top:2rem;">Anime</div>
+      <div class="site-grid">
+        <a class="site-card" href="https://hianime.to" target="_blank"><div class="site-card-name">HiAnime</div><div class="site-card-desc">Massive anime library, subbed and dubbed.</div><span class="site-card-tag">WEBSITE</span></a>
+        <a class="site-card" href="https://aniwave.to" target="_blank"><div class="site-card-name">Aniwave</div><div class="site-card-desc">Fast streams, huge selection of anime.</div><span class="site-card-tag">WEBSITE</span></a>
+        <a class="site-card" href="https://www.crunchyroll.com" target="_blank"><div class="site-card-name">Crunchyroll</div><div class="site-card-desc">Legal, free tier available with ads.</div><span class="site-card-tag">LEGAL FREE</span></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ MUSIC PAGE ═══ -->
+  <div id="page-music" class="page-hidden">
+    <div class="page-header">
+      <div class="page-breadcrumb"><a onclick="showPage('home')" style="cursor:pointer">Home</a> <span>/</span> Music</div>
+      <div class="page-title">MU<span class="r">SIC</span></div>
+      <div class="page-desc">Stream and download music for free. No Spotify Premium required.</div>
+    </div>
+    <div class="section-wrap">
+      <div class="section-title">Streaming</div>
+      <div class="site-grid">
+        <a class="site-card" href="https://www.youtube.com/music" target="_blank"><div class="site-card-name">YouTube Music</div><div class="site-card-desc">Free with ads. Pair with uBlock Origin.</div><span class="site-card-tag">LEGAL FREE</span></a>
+        <a class="site-card" href="https://www.deezer.com" target="_blank"><div class="site-card-name">Deezer</div><div class="site-card-desc">Free tier with shuffle play available.</div><span class="site-card-tag">LEGAL FREE</span></a>
+        <a class="site-card" href="https://open.spotify.com" target="_blank"><div class="site-card-name">Spotify</div><div class="site-card-desc">Free with ads. Use SpotX to remove them.</div><span class="site-card-tag">PATCHABLE</span></a>
+      </div>
+      <div class="section-title" style="margin-top:2rem;">Downloading</div>
+      <div class="site-grid">
+        <a class="site-card" href="https://slavart.gamesdrive.net" target="_blank"><div class="site-card-name">Slavart</div><div class="site-card-desc">Download lossless music from Qobuz/Tidal free.</div><span class="site-card-tag">DOWNLOADER</span></a>
+        <a class="site-card" href="https://free-mp3-download.net" target="_blank"><div class="site-card-name">Free MP3 Download</div><div class="site-card-desc">Download any song as MP3 or FLAC.</div><span class="site-card-tag">DOWNLOADER</span></a>
+        <a class="site-card" href="https://cobalt.tools" target="_blank"><div class="site-card-name">Cobalt</div><div class="site-card-desc">Download from YouTube, Spotify, SoundCloud.</div><span class="site-card-tag">DOWNLOADER</span></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ BOOKS PAGE ═══ -->
+  <div id="page-books" class="page-hidden">
+    <div class="page-header">
+      <div class="page-breadcrumb"><a onclick="showPage('home')" style="cursor:pointer">Home</a> <span>/</span> Books & Reading</div>
+      <div class="page-title">BOOKS & <span class="r">READING</span></div>
+      <div class="page-desc">Ebooks, manga, comics, textbooks — all free.</div>
+    </div>
+    <div class="section-wrap">
+      <div class="section-title">Ebooks & Textbooks</div>
+      <div class="site-grid">
+        <a class="site-card" href="https://libgen.is" target="_blank"><div class="site-card-name">Library Genesis</div><div class="site-card-desc">Millions of books and papers. The holy grail.</div><span class="site-card-tag">DOWNLOAD</span></a>
+        <a class="site-card" href="https://z-lib.id" target="_blank"><div class="site-card-name">Z-Library</div><div class="site-card-desc">Huge ebook collection. Free account gives more.</div><span class="site-card-tag">DOWNLOAD</span></a>
+        <a class="site-card" href="https://archive.org" target="_blank"><div class="site-card-name">Internet Archive</div><div class="site-card-desc">Borrow books online legally for free.</div><span class="site-card-tag">LEGAL FREE</span></a>
+        <a class="site-card" href="https://annas-archive.org" target="_blank"><div class="site-card-name">Anna's Archive</div><div class="site-card-desc">Meta search across LibGen, Z-Lib and more.</div><span class="site-card-tag">SEARCH</span></a>
+      </div>
+      <div class="section-title" style="margin-top:2rem;">Manga & Comics</div>
+      <div class="site-grid">
+        <a class="site-card" href="https://mangadex.org" target="_blank"><div class="site-card-name">MangaDex</div><div class="site-card-desc">Massive manga library, free and legal.</div><span class="site-card-tag">LEGAL FREE</span></a>
+        <a class="site-card" href="https://getcomics.org" target="_blank"><div class="site-card-name">GetComics</div><div class="site-card-desc">Download DC, Marvel and indie comics free.</div><span class="site-card-tag">DOWNLOAD</span></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PRIVACY PAGE ═══ -->
+  <div id="page-privacy" class="page-hidden">
+    <div class="page-header">
+      <div class="page-breadcrumb"><a onclick="showPage('home')" style="cursor:pointer">Home</a> <span>/</span> Privacy & Adblock</div>
+      <div class="page-title">PRIVACY & <span class="r">ADBLOCK</span></div>
+      <div class="page-desc">Essential tools before you do anything else online.</div>
+    </div>
+    <div class="section-wrap">
+      <div class="section-title">Must have extensions</div>
+      <div class="site-grid">
+        <a class="site-card" href="https://ublockorigin.com" target="_blank"><div class="site-card-name">uBlock Origin</div><div class="site-card-desc">Best adblocker. Install this before anything else.</div><span class="site-card-tag">BROWSER EXT</span></a>
+        <a class="site-card" href="https://www.privacybadger.org" target="_blank"><div class="site-card-name">Privacy Badger</div><div class="site-card-desc">Blocks invisible trackers automatically.</div><span class="site-card-tag">BROWSER EXT</span></a>
+        <a class="site-card" href="https://sponsorblock.ajay.app" target="_blank"><div class="site-card-name">SponsorBlock</div><div class="site-card-desc">Skip YouTube sponsors, intros and outros.</div><span class="site-card-tag">BROWSER EXT</span></a>
+      </div>
+      <div class="section-title" style="margin-top:2rem;">VPN & Anonymity</div>
+      <div class="site-grid">
+        <a class="site-card" href="https://protonvpn.com" target="_blank"><div class="site-card-name">ProtonVPN</div><div class="site-card-desc">Best free VPN. No logs, no limits on free tier.</div><span class="site-card-tag">FREE VPN</span></a>
+        <a class="site-card" href="https://www.torproject.org" target="_blank"><div class="site-card-name">Tor Browser</div><div class="site-card-desc">Maximum anonymity. Slower but untraceable.</div><span class="site-card-tag">BROWSER</span></a>
+        <a class="site-card" href="https://mullvad.net" target="_blank"><div class="site-card-name">Mullvad</div><div class="site-card-desc">Best paid VPN. Accepts cash and crypto.</div><span class="site-card-tag">PAID VPN</span></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ MOBILE PAGE ═══ -->
+  <div id="page-mobile" class="page-hidden">
+    <div class="page-header">
+      <div class="page-breadcrumb"><a onclick="showPage('home')" style="cursor:pointer">Home</a> <span>/</span> Android & iOS</div>
+      <div class="page-title">ANDROID <span class="r">& iOS</span></div>
+      <div class="page-desc">Modded APKs, premium apps for free, patched iOS apps.</div>
+    </div>
+    <div class="section-wrap">
+      <div class="section-title">Android</div>
+      <div class="site-grid">
+        <a class="site-card" href="https://revanced.app" target="_blank"><div class="site-card-name">ReVanced</div><div class="site-card-desc">Patch YouTube, Spotify and more on Android.</div><span class="site-card-tag">PATCHER</span></a>
+        <a class="site-card" href="https://apkpure.com" target="_blank"><div class="site-card-name">APKPure</div><div class="site-card-desc">Download APKs directly. Reliable source.</div><span class="site-card-tag">APK STORE</span></a>
+        <a class="site-card" href="https://liteapks.com" target="_blank"><div class="site-card-name">LiteAPKs</div><div class="site-card-desc">Modded premium apps for Android.</div><span class="site-card-tag">MODDED APKS</span></a>
+      </div>
+      <div class="section-title" style="margin-top:2rem;">iOS</div>
+      <div class="site-grid">
+        <a class="site-card" href="https://altstore.io" target="_blank"><div class="site-card-name">AltStore</div><div class="site-card-desc">Sideload apps on iOS without jailbreak.</div><span class="site-card-tag">SIDELOADER</span></a>
+        <a class="site-card" href="https://scarlet-ios.com" target="_blank"><div class="site-card-name">Scarlet</div><div class="site-card-desc">Install tweaked/modded iOS apps easily.</div><span class="site-card-tag">STORE</span></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ AI PAGE ═══ -->
+  <div id="page-ai" class="page-hidden">
+    <div class="page-header">
+      <div class="page-breadcrumb"><a onclick="showPage('home')" style="cursor:pointer">Home</a> <span>/</span> AI Tools</div>
+      <div class="page-title">AI <span class="r">TOOLS</span></div>
+      <div class="page-desc">Free AI models, image generators and chatbots. No subscriptions.</div>
+    </div>
+    <div class="section-wrap">
+      <div class="section-title">Free chatbots</div>
+      <div class="site-grid">
+        <a class="site-card" href="https://chat.mistral.ai" target="_blank"><div class="site-card-name">Mistral</div><div class="site-card-desc">Fast, capable and completely free.</div><span class="site-card-tag">CHATBOT</span></a>
+        <a class="site-card" href="https://www.perplexity.ai" target="_blank"><div class="site-card-name">Perplexity</div><div class="site-card-desc">AI search engine. Free tier is excellent.</div><span class="site-card-tag">AI SEARCH</span></a>
+        <a class="site-card" href="https://huggingface.co/chat" target="_blank"><div class="site-card-name">HuggingChat</div><div class="site-card-desc">Run open source models free in the browser.</div><span class="site-card-tag">OPEN SOURCE</span></a>
+      </div>
+      <div class="section-title" style="margin-top:2rem;">Image generation</div>
+      <div class="site-grid">
+        <a class="site-card" href="https://www.craiyon.com" target="_blank"><div class="site-card-name">Craiyon</div><div class="site-card-desc">Free AI image generation, unlimited.</div><span class="site-card-tag">FREE</span></a>
+        <a class="site-card" href="https://ideogram.ai" target="_blank"><div class="site-card-name">Ideogram</div><div class="site-card-desc">Great for text in images. Generous free tier.</div><span class="site-card-tag">FREE TIER</span></a>
+        <a class="site-card" href="https://stability.ai" target="_blank"><div class="site-card-name">Stable Diffusion</div><div class="site-card-desc">Run locally on your PC. Fully free forever.</div><span class="site-card-tag">LOCAL</span></a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TORRENTING PAGE ═══ -->
+  <div id="page-torrenting" class="page-hidden">
+    <div class="page-header">
+      <div class="page-breadcrumb"><a onclick="showPage('home')" style="cursor:pointer">Home</a> <span>/</span> Torrenting</div>
+      <div class="page-title">TORRENT<span class="r">ING</span></div>
+      <div class="page-desc">Clients, indexers and guides. Everything to sail safely.</div>
+    </div>
+    <div class="section-wrap">
+
+      <div class="section-title">Download torrent clients</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;">
+
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.3rem;display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:38px;height:38px;border-radius:8px;background:#1a2a1a;border:1px solid rgba(34,197,94,.2);display:flex;align-items:center;justify-content:center;font-size:18px;">⚡</div>
+            <div>
+              <div style="font-weight:700;font-size:.95rem;">qBittorrent</div>
+              <div style="font-size:.72rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;">Recommended</div>
+            </div>
+          </div>
+          <div style="font-size:.78rem;color:var(--muted);line-height:1.6;">Best torrent client. Open source, no ads, no bloat. The one everyone uses.</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <a href="https://www.qbittorrent.org/download" target="_blank" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;text-decoration:none;color:var(--text);font-size:.78rem;font-weight:600;transition:background .15s;" onmouseover="this.style.background='#2a2a2a'" onmouseout="this.style.background='var(--bg3)'">
+              <span>🪟 Windows (.exe)</span><span style="color:var(--red);font-size:.7rem;">Download →</span>
+            </a>
+            <a href="https://www.qbittorrent.org/download" target="_blank" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;text-decoration:none;color:var(--text);font-size:.78rem;font-weight:600;transition:background .15s;" onmouseover="this.style.background='#2a2a2a'" onmouseout="this.style.background='var(--bg3)'">
+              <span>🍎 macOS (.dmg)</span><span style="color:var(--red);font-size:.7rem;">Download →</span>
+            </a>
+            <a href="https://www.qbittorrent.org/download" target="_blank" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;text-decoration:none;color:var(--text);font-size:.78rem;font-weight:600;transition:background .15s;" onmouseover="this.style.background='#2a2a2a'" onmouseout="this.style.background='var(--bg3)'">
+              <span>🐧 Linux (.deb / .rpm)</span><span style="color:var(--red);font-size:.7rem;">Download →</span>
+            </a>
+          </div>
+        </div>
+
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.3rem;display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:38px;height:38px;border-radius:8px;background:#1a1a2a;border:1px solid rgba(96,165,250,.2);display:flex;align-items:center;justify-content:center;font-size:18px;">🌊</div>
+            <div>
+              <div style="font-weight:700;font-size:.95rem;">TransmissionQt</div>
+              <div style="font-size:.72rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;">Lightweight</div>
+            </div>
+          </div>
+          <div style="font-size:.78rem;color:var(--muted);line-height:1.6;">Super lightweight and fast. Great for lower-end PCs and Macs. Clean and simple.</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <a href="https://github.com/transmission-qt/transmission-qt/releases" target="_blank" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;text-decoration:none;color:var(--text);font-size:.78rem;font-weight:600;transition:background .15s;" onmouseover="this.style.background='#2a2a2a'" onmouseout="this.style.background='var(--bg3)'">
+              <span>🪟 Windows (.exe)</span><span style="color:#60a5fa;font-size:.7rem;">Download →</span>
+            </a>
+            <a href="https://github.com/transmission-qt/transmission-qt/releases" target="_blank" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;text-decoration:none;color:var(--text);font-size:.78rem;font-weight:600;transition:background .15s;" onmouseover="this.style.background='#2a2a2a'" onmouseout="this.style.background='var(--bg3)'">
+              <span>🍎 macOS (.dmg)</span><span style="color:#60a5fa;font-size:.7rem;">Download →</span>
+            </a>
+            <a href="https://github.com/transmission-qt/transmission-qt/releases" target="_blank" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;text-decoration:none;color:var(--text);font-size:.78rem;font-weight:600;transition:background .15s;" onmouseover="this.style.background='#2a2a2a'" onmouseout="this.style.background='var(--bg3)'">
+              <span>🐧 Linux</span><span style="color:#60a5fa;font-size:.7rem;">Download →</span>
+            </a>
+          </div>
+        </div>
+
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.3rem;display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:38px;height:38px;border-radius:8px;background:#2a1a1a;border:1px solid rgba(244,162,97,.2);display:flex;align-items:center;justify-content:center;font-size:18px;">🔱</div>
+            <div>
+              <div style="font-weight:700;font-size:.95rem;">BiglyBT</div>
+              <div style="font-size:.72rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;">Feature-rich</div>
+            </div>
+          </div>
+          <div style="font-size:.78rem;color:var(--muted);line-height:1.6;">Feature-packed open source client. Great for power users. Based on Vuze but no bloat.</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <a href="https://www.biglybt.com/download/" target="_blank" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;text-decoration:none;color:var(--text);font-size:.78rem;font-weight:600;transition:background .15s;" onmouseover="this.style.background='#2a2a2a'" onmouseout="this.style.background='var(--bg3)'">
+              <span>🪟 Windows (.exe)</span><span style="color:#f4a261;font-size:.7rem;">Download →</span>
+            </a>
+            <a href="https://www.biglybt.com/download/" target="_blank" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;text-decoration:none;color:var(--text);font-size:.78rem;font-weight:600;transition:background .15s;" onmouseover="this.style.background='#2a2a2a'" onmouseout="this.style.background='var(--bg3)'">
+              <span>🍎 macOS (.dmg)</span><span style="color:#f4a261;font-size:.7rem;">Download →</span>
+            </a>
+            <a href="https://www.biglybt.com/download/" target="_blank" style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;text-decoration:none;color:var(--text);font-size:.78rem;font-weight:600;transition:background .15s;" onmouseover="this.style.background='#2a2a2a'" onmouseout="this.style.background='var(--bg3)'">
+              <span>🐧 Linux (.deb)</span><span style="color:#f4a261;font-size:.7rem;">Download →</span>
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="section-title" style="margin-top:2rem;">Torrent indexers</div>
+      <div class="site-grid">
+        <a class="site-card" href="https://1337x.to" target="_blank"><div class="site-card-name">1337x</div><div class="site-card-desc">Best general torrent site. Clean and reliable.</div><span class="site-card-tag">INDEXER</span></a>
+        <a class="site-card" href="https://thepiratebay.org" target="_blank"><div class="site-card-name">The Pirate Bay</div><div class="site-card-desc">The OG. Still going strong after 20 years.</div><span class="site-card-tag">INDEXER</span></a>
+        <a class="site-card" href="https://nyaa.si" target="_blank"><div class="site-card-name">Nyaa</div><div class="site-card-desc">Best source for anime torrents.</div><span class="site-card-tag">ANIME</span></a>
+      </div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<!-- GLOBAL SEARCH OVERLAY -->
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeSearch()">
+  <div class="search-box">
+    <div class="search-row">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="global-search-input" placeholder="Search games, software..." oninput="handleGlobalSearch(this.value)"/>
+      <span style="font-size:.68rem;color:#333;font-family:'IBM Plex Mono',monospace;">esc</span>
+    </div>
+    <div class="search-body" id="global-search-body" style="justify-content:center;align-items:center;">
+      <span style="color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:.78rem;">// type to search across all sources</span>
+    </div>
+    <div class="search-footer">
+      <span><kbd>↑↓</kbd> navigate</span>
+      <span><kbd>↵</kbd> open</span>
+      <span><kbd>esc</kbd> close</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'http://127.0.0.1:8000';
+let currentPage = 'home';
+let gamesLoaded = false;
+let softwareLoaded = false;
+let globalTimer, gamesTimer, softwareTimer;
+
+function showPage(page) {
+  document.querySelectorAll('[id^="page-"]').forEach(el => el.classList.add('page-hidden'));
+  document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('page-' + page);
+  const sl = document.getElementById('sl-' + page);
+  if(el) el.classList.remove('page-hidden');
+  if(sl) sl.classList.add('active');
+  currentPage = page;
+  window.scrollTo(0,0);
+  if(page === 'games' && !gamesLoaded) { loadTrendingGames(); gamesLoaded = true; }
+  if(page === 'software' && !softwareLoaded) { loadTrendingSoftware(); softwareLoaded = true; }
+}
+
+function resultHTML(r) {
+  const srcClass = r.source === 'FitGirl' ? 'src-fitgirl' : r.source === 'DODI' ? 'src-dodi' : 'src-tpb';
+  const seeds = parseInt(r.seeds) || 0;
+  const dotClass = seeds > 100 ? '' : seeds > 10 ? 'low' : 'dead';
+  const seedInfo = r.seeds && r.seeds !== 'N/A' ? `<span>🌱 ${r.seeds} seeds</span>` : '';
+  const sizeInfo = r.size && r.size !== 'N/A' ? `<span>📦 ${r.size}</span>` : '';
+  const skull = r.skull || '';
+  const skullTitle = skull === '🟢' ? 'VIP / Trusted uploader' : skull === '🟣' ? 'Trusted uploader' : '';
+  return `
+    <a class="result-item" href="${r.link}" target="_blank">
+      <div class="result-left">
+        <div class="result-title">${skull ? `<span title="${skullTitle}" style="margin-right:5px;font-size:12px;">${skull}</span>` : ''}${r.title}</div>
+        <div class="result-meta">${sizeInfo}${seedInfo}</div>
+      </div>
+      <div class="result-right">
+        ${r.seeds && r.seeds !== 'N/A' ? `<div class="seed-dot ${dotClass}"></div>` : ''}
+        <span class="src-pill ${srcClass}">${r.source}</span>
+      </div>
+    </a>`;
+}
+
+async function loadTrendingGames() {
+  const el = document.getElementById('games-results');
+  try {
+    const res = await fetch(`${API}/trending/games`);
+    const data = await res.json();
+    if(!data.results.length) { el.innerHTML = '<div class="empty-msg">// no results found</div>'; return; }
+    el.innerHTML = data.results.map(resultHTML).join('');
+  } catch(e) {
+    el.innerHTML = '<div class="empty-msg">// backend offline — run uvicorn main:app --reload</div>';
+  }
+}
+
+async function loadTrendingSoftware() {
+  const el = document.getElementById('software-results');
+  try {
+    const res = await fetch(`${API}/trending/software`);
+    const data = await res.json();
+    if(!data.results.length) { el.innerHTML = '<div class="empty-msg">// no results found</div>'; return; }
+    el.innerHTML = data.results.map(resultHTML).join('');
+  } catch(e) {
+    el.innerHTML = '<div class="empty-msg">// backend offline — run uvicorn main:app --reload</div>';
+  }
+}
+
+function handleGameSearch(q) {
+  clearTimeout(gamesTimer);
+  const el = document.getElementById('games-results');
+  if(!q.trim()) { gamesLoaded = false; loadTrendingGames(); gamesLoaded = true; return; }
+  el.innerHTML = '<div class="loading-row"><div class="spinner"></div> Searching FitGirl + DODI...</div>';
+  gamesTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`${API}/search/games?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      el.innerHTML = data.results.length ? data.results.map(resultHTML).join('') : `<div class="empty-msg">// no results for "${q}"</div>`;
+    } catch(e) { el.innerHTML = '<div class="empty-msg">// backend offline</div>'; }
+  }, 450);
+}
+
+function handleSoftwareSearch(q) {
+  clearTimeout(softwareTimer);
+  const el = document.getElementById('software-results');
+  if(!q.trim()) { softwareLoaded = false; loadTrendingSoftware(); softwareLoaded = true; return; }
+  el.innerHTML = '<div class="loading-row"><div class="spinner"></div> Searching...</div>';
+  softwareTimer = setTimeout(async () => {
+    try {
+      const res = await fetch(`${API}/search/software?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      el.innerHTML = data.results.length ? data.results.map(resultHTML).join('') : `<div class="empty-msg">// no results for "${q}"</div>`;
+    } catch(e) { el.innerHTML = '<div class="empty-msg">// backend offline</div>'; }
+  }, 450);
+}
+
+function openSearch() {
+  document.getElementById('overlay').classList.add('open');
+  setTimeout(() => document.getElementById('global-search-input').focus(), 50);
+}
+function closeSearch() {
+  document.getElementById('overlay').classList.remove('open');
+  document.getElementById('global-search-input').value = '';
+  document.getElementById('global-search-body').innerHTML = '<span style="color:var(--muted);font-family:\'IBM Plex Mono\',monospace;font-size:.78rem;">// type to search across all sources</span>';
+}
+
+function handleGlobalSearch(q) {
+  clearTimeout(globalTimer);
+  const b = document.getElementById('global-search-body');
+  if(!q.trim()) { b.innerHTML = '<span style="color:var(--muted);font-family:\'IBM Plex Mono\',monospace;font-size:.78rem;">// type to search across all sources</span>'; return; }
+  b.innerHTML = '<div class="loading-row" style="padding:.75rem"><div class="spinner"></div> Searching all sources...</div>';
+  globalTimer = setTimeout(async () => {
+    try {
+      const [gr, sr] = await Promise.all([
+        fetch(`${API}/search/games?q=${encodeURIComponent(q)}`).then(r=>r.json()),
+        fetch(`${API}/search/software?q=${encodeURIComponent(q)}`).then(r=>r.json())
+      ]);
+      const all = [...(gr.results||[]), ...(sr.results||[])];
+      b.style.justifyContent = 'flex-start';
+      b.style.alignItems = 'flex-start';
+      b.innerHTML = all.length ? all.map(resultHTML).join('') : `<div class="empty-msg" style="padding:.75rem">// no results for "${q}"</div>`;
+    } catch(e) { b.innerHTML = '<div class="empty-msg" style="padding:.75rem">// backend offline</div>'; }
+  }, 450);
+}
+
+document.addEventListener('keydown', e => {
+  if((e.ctrlKey||e.metaKey) && e.key==='k') { e.preventDefault(); openSearch(); }
+  if(e.key==='Escape') closeSearch();
+});
+</script>
+</body>
+</html>
