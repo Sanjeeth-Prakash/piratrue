@@ -9,10 +9,26 @@ HEADERS = {
     "Connection": "keep-alive",
 }
 
-CAT_SOFTWARE = 300
-CAT_GAMES    = 400
+TPB_MIRRORS = [
+    "https://apibay.org",
+    "https://pirates-bay.org/api",
+    "https://thepiratebay.org/api",
+]
 
-TRUSTED_STATUS = {"vip", "trusted"}
+async def tpb_api(path: str) -> list:
+    for mirror in TPB_MIRRORS:
+        try:
+            url = f"{mirror}{path}"
+            async with httpx.AsyncClient(headers=HEADERS, timeout=15) as client:
+                r = await client.get(url)
+                if r.status_code == 200:
+                    data = r.json()
+                    if data and not (len(data) == 1 and data[0].get("id") == "0"):
+                        return data
+        except Exception as e:
+            print(f"Mirror {mirror} failed: {e}")
+            continue
+    return []
 
 
 def build_magnet(info_hash: str, name: str) -> str:
@@ -51,14 +67,15 @@ def parse_tpb_item(item: dict) -> dict:
     }
 
 
+CAT_SOFTWARE = 300
+CAT_GAMES    = 400
+TRUSTED_STATUS = {"vip", "trusted"}
+
 async def tpb_search(query: str, category: int, limit: int = 8, trusted_only: bool = True):
     results = []
     try:
-        url = f"https://apibay.org/q.php?q={query.replace(' ', '+')}&cat={category}"
-        async with httpx.AsyncClient(headers=HEADERS, timeout=15) as client:
-            r = await client.get(url)
-        data = r.json()
-        if not data or (len(data) == 1 and data[0].get("id") == "0"):
+        data = await tpb_api(f"/q.php?q={query.replace(' ', '+')}&cat={category}")
+        if not data:
             return []
         for item in data:
             if trusted_only and item.get("status", "") not in TRUSTED_STATUS:
@@ -67,7 +84,6 @@ async def tpb_search(query: str, category: int, limit: int = 8, trusted_only: bo
             if len(results) >= limit:
                 break
         if not results and trusted_only:
-            print(f"No trusted results for '{query}', falling back to all")
             for item in data[:limit]:
                 results.append(parse_tpb_item(item))
     except Exception as e:
@@ -78,10 +94,9 @@ async def tpb_search(query: str, category: int, limit: int = 8, trusted_only: bo
 async def tpb_trending(category: int, limit: int = 12, trusted_only: bool = True):
     results = []
     try:
-        url = f"https://apibay.org/precompiled/data_top100_{category}.json"
-        async with httpx.AsyncClient(headers=HEADERS, timeout=15) as client:
-            r = await client.get(url)
-        data = r.json()
+        data = await tpb_api(f"/precompiled/data_top100_{category}.json")
+        if not data:
+            return []
         for item in data:
             if trusted_only and item.get("status", "") not in TRUSTED_STATUS:
                 continue
