@@ -6,6 +6,7 @@ from scraper import (
     search_fitgirl,
     search_dodi,
     search_filecr,
+    search_1337x,
     get_trending_games,
     get_trending_software
 )
@@ -21,18 +22,14 @@ app.add_middleware(
 
 @app.get("/")
 def root():
-    return {"status": "PIRATRUE API is running"}
+    return {"status": "PIRATRUE API is running 🏴‍☠️"}
 
 @app.get("/search")
 async def search(q: str):
     if not q or len(q.strip()) < 2:
         return {"results": [], "query": q}
     results = await search_all(q.strip())
-    return {
-        "query": q,
-        "count": len(results),
-        "results": results
-    }
+    return {"query": q, "count": len(results), "results": results}
 
 @app.get("/search/games")
 async def search_games(q: str):
@@ -43,22 +40,14 @@ async def search_games(q: str):
         search_dodi(q.strip())
     )
     results = fitgirl + dodi
-    return {
-        "query": q,
-        "count": len(results),
-        "results": results
-    }
+    return {"query": q, "count": len(results), "results": results}
 
 @app.get("/search/software")
 async def search_software(q: str):
     if not q or len(q.strip()) < 2:
         return {"results": [], "query": q}
-    results = await search_filecr(q.strip())
-    return {
-        "query": q,
-        "count": len(results),
-        "results": results
-    }
+    results = await search_1337x(q.strip(), "Software")
+    return {"query": q, "count": len(results), "results": results}
 
 @app.get("/trending/games")
 async def trending_games():

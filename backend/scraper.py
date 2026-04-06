@@ -1,119 +1,156 @@
 import httpx
 from bs4 import BeautifulSoup
 import asyncio
+import random
 
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Accept-Language": "en-US,en;q=0.5",
-    "Connection": "keep-alive",
-}
-
-TPB_MIRRORS = [
-    "https://apibay.org",
-    "https://pirates-bay.org/api",
-    "https://thepiratebay.org/api",
+# Rotate user agents to avoid blocks
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/119.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/118.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/119.0",
 ]
 
-async def tpb_api(path: str) -> list:
-    for mirror in TPB_MIRRORS:
+def get_headers():
+    return {
+        "User-Agent": random.choice(USER_AGENTS),
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Cache-Control": "no-cache",
+    }
+
+# 1337x mirrors — tries each until one works
+MIRRORS_1337X = [
+    "https://1337x.to",
+    "https://1337x.st",
+    "https://x1337x.se",
+    "https://1337x.is",
+    "https://1337x.gd",
+]
+
+
+async def fetch_1337x(path: str) -> str:
+    for mirror in MIRRORS_1337X:
         try:
             url = f"{mirror}{path}"
-            async with httpx.AsyncClient(headers=HEADERS, timeout=15) as client:
+            async with httpx.AsyncClient(headers=get_headers(), timeout=15, follow_redirects=True) as client:
                 r = await client.get(url)
-                if r.status_code == 200:
-                    data = r.json()
-                    if data and not (len(data) == 1 and data[0].get("id") == "0"):
-                        return data
+                if r.status_code == 200 and len(r.text) > 500:
+                    return r.text
         except Exception as e:
             print(f"Mirror {mirror} failed: {e}")
             continue
-    return []
+    return ""
 
 
-def build_magnet(info_hash: str, name: str) -> str:
-    trackers = (
-        "&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337"
-        "&tr=udp%3A%2F%2Fopen.tracker.cl%3A1337"
-        "&tr=udp%3A%2F%2F9.rarbg.com%3A2810"
-        "&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A6969"
-    )
-    return f"magnet:?xt=urn:btih:{info_hash}&dn={name}{trackers}"
+async def get_1337x_magnet(torrent_path: str) -> str:
+    html = await fetch_1337x(torrent_path)
+    if html:
+        soup = BeautifulSoup(html, "html.parser")
+        magnet = soup.find("a", href=lambda h: h and h.startswith("magnet:"))
+        if magnet:
+            return magnet["href"]
+    return ""
 
 
-def format_size(size_bytes: int) -> str:
-    size_gb = round(size_bytes / (1024**3), 2)
-    if size_gb >= 1:
-        return f"{size_gb} GB"
-    return f"{round(size_bytes / (1024**2), 1)} MB"
-
-
-def parse_tpb_item(item: dict) -> dict:
-    size_bytes = int(item.get("size", 0))
-    info_hash = item.get("info_hash", "")
-    name = item.get("name", "")
-    status = item.get("status", "")
-    skull = "🟢" if status == "vip" else "🟣" if status == "trusted" else "⚪"
-    return {
-        "title": name,
-        "link": build_magnet(info_hash, name),
-        "size": format_size(size_bytes),
-        "seeds": str(item.get("seeders", 0)),
-        "image": "",
-        "source": "TPB",
-        "status": status,
-        "skull": skull,
-        "magnet": True
-    }
-
-
-CAT_SOFTWARE = 300
-CAT_GAMES    = 400
-TRUSTED_STATUS = {"vip", "trusted"}
-
-async def tpb_search(query: str, category: int, limit: int = 8, trusted_only: bool = True):
+async def search_1337x(query: str, category: str = "Software", limit: int = 8):
     results = []
     try:
-        data = await tpb_api(f"/q.php?q={query.replace(' ', '+')}&cat={category}")
-        if not data:
+        path = f"/category-search/{query.replace(' ', '%20')}/{category}/1/"
+        html = await fetch_1337x(path)
+        if not html:
             return []
-        for item in data:
-            if trusted_only and item.get("status", "") not in TRUSTED_STATUS:
+        soup = BeautifulSoup(html, "html.parser")
+        rows = soup.select("table.table-list tbody tr")[:limit]
+        tasks = []
+        row_data = []
+        for row in rows:
+            name_els = row.select("td.name a")
+            if len(name_els) < 2:
                 continue
-            results.append(parse_tpb_item(item))
-            if len(results) >= limit:
-                break
-        if not results and trusted_only:
-            for item in data[:limit]:
-                results.append(parse_tpb_item(item))
+            title = name_els[1].text.strip()
+            path2 = name_els[1]["href"]
+            size_el = row.select_one("td.size")
+            size = size_el.text.strip().split("\n")[0] if size_el else "N/A"
+            seeds_el = row.select_one("td.seeds")
+            seeds = seeds_el.text.strip() if seeds_el else "0"
+            tasks.append(get_1337x_magnet(path2))
+            row_data.append({"title": title, "size": size, "seeds": seeds})
+        magnets = await asyncio.gather(*tasks)
+        for d, magnet in zip(row_data, magnets):
+            if not magnet:
+                continue
+            results.append({
+                "title": d["title"],
+                "link": magnet,
+                "size": d["size"],
+                "seeds": d["seeds"],
+                "image": "",
+                "source": "1337x",
+                "skull": "🟢",
+                "magnet": True
+            })
     except Exception as e:
-        print(f"TPB search error: {e}")
+        print(f"1337x search error: {e}")
     return results
 
 
-async def tpb_trending(category: int, limit: int = 12, trusted_only: bool = True):
+async def trending_1337x(category: str = "Software", limit: int = 12):
     results = []
     try:
-        data = await tpb_api(f"/precompiled/data_top100_{category}.json")
-        if not data:
-            return []
-        for item in data:
-            if trusted_only and item.get("status", "") not in TRUSTED_STATUS:
+        html = await fetch_1337x("/top-100")
+        if not html:
+            return await search_1337x("adobe office photoshop", category, limit)
+        soup = BeautifulSoup(html, "html.parser")
+        rows = soup.select("table.table-list tbody tr")
+        tasks = []
+        row_data = []
+        for row in rows:
+            cat_el = row.select_one("td.coll-1 a")
+            if not cat_el or category.lower() not in cat_el.text.lower():
                 continue
-            results.append(parse_tpb_item(item))
-            if len(results) >= limit:
+            name_els = row.select("td.name a")
+            if len(name_els) < 2:
+                continue
+            title = name_els[1].text.strip()
+            path = name_els[1]["href"]
+            size_el = row.select_one("td.size")
+            size = size_el.text.strip().split("\n")[0] if size_el else "N/A"
+            seeds_el = row.select_one("td.seeds")
+            seeds = seeds_el.text.strip() if seeds_el else "0"
+            tasks.append(get_1337x_magnet(path))
+            row_data.append({"title": title, "size": size, "seeds": seeds})
+            if len(tasks) >= limit:
                 break
-        if not results and trusted_only:
-            for item in data[:limit]:
-                results.append(parse_tpb_item(item))
+        if not tasks:
+            return await search_1337x("adobe office photoshop", category, limit)
+        magnets = await asyncio.gather(*tasks)
+        for d, magnet in zip(row_data, magnets):
+            if not magnet:
+                continue
+            results.append({
+                "title": d["title"],
+                "link": magnet,
+                "size": d["size"],
+                "seeds": d["seeds"],
+                "image": "",
+                "source": "1337x",
+                "skull": "🟢",
+                "magnet": True
+            })
     except Exception as e:
-        print(f"TPB trending error: {e}")
+        print(f"1337x trending error: {e}")
     return results
 
 
 async def get_fitgirl_magnet(post_url: str, client: httpx.AsyncClient) -> str:
     try:
-        r = await client.get(post_url)
+        r = await client.get(post_url, headers=get_headers())
         soup = BeautifulSoup(r.text, "html.parser")
         magnet = soup.find("a", href=lambda h: h and h.startswith("magnet:"))
         if magnet:
@@ -127,7 +164,7 @@ async def search_fitgirl(query: str):
     results = []
     try:
         url = f"https://fitgirl-repacks.site/?s={query.replace(' ', '+')}"
-        async with httpx.AsyncClient(headers=HEADERS, timeout=15, follow_redirects=True) as client:
+        async with httpx.AsyncClient(headers=get_headers(), timeout=15, follow_redirects=True) as client:
             r = await client.get(url)
             soup = BeautifulSoup(r.text, "html.parser")
             posts = soup.select("article.post")[:5]
@@ -169,7 +206,7 @@ async def search_dodi(query: str):
     results = []
     try:
         url = f"https://dodi-repacks.site/?s={query.replace(' ', '+')}"
-        async with httpx.AsyncClient(headers=HEADERS, timeout=15, follow_redirects=True) as client:
+        async with httpx.AsyncClient(headers=get_headers(), timeout=15, follow_redirects=True) as client:
             r = await client.get(url)
         soup = BeautifulSoup(r.text, "html.parser")
         posts = soup.select("article.post")[:5]
@@ -195,30 +232,26 @@ async def search_dodi(query: str):
 
 
 async def search_filecr(query: str):
-    return await tpb_search(query, CAT_SOFTWARE, trusted_only=True)
+    return await search_1337x(query, "Software")
 
 
 async def search_all(query: str):
     fitgirl, dodi, software = await asyncio.gather(
         search_fitgirl(query),
         search_dodi(query),
-        tpb_search(query, CAT_SOFTWARE, trusted_only=True)
+        search_1337x(query, "Software")
     )
     return fitgirl + dodi + software
 
 
 async def get_trending_games():
-    fitgirl, tpb = await asyncio.gather(
-        _fitgirl_home(),
-        tpb_trending(CAT_GAMES, 6, trusted_only=True)
-    )
-    return fitgirl + tpb
+    return await _fitgirl_home()
 
 
 async def _fitgirl_home():
     results = []
     try:
-        async with httpx.AsyncClient(headers=HEADERS, timeout=15, follow_redirects=True) as client:
+        async with httpx.AsyncClient(headers=get_headers(), timeout=15, follow_redirects=True) as client:
             r = await client.get("https://fitgirl-repacks.site/")
             soup = BeautifulSoup(r.text, "html.parser")
             posts = soup.select("article.post")[:8]
@@ -257,4 +290,4 @@ async def _fitgirl_home():
 
 
 async def get_trending_software():
-    return await tpb_trending(CAT_SOFTWARE, 12, trusted_only=True)
+    return await trending_1337x("Software", 12)
