@@ -118,6 +118,7 @@ main{margin-left:var(--sw);flex:1;min-height:calc(100vh - 52px)}
 .pill{font-family:'IBM Plex Mono',monospace;font-size:0.63rem;padding:3px 8px;border-radius:3px}
 .pfg{background:rgba(230,57,70,0.15);color:#e63946}
 .pkn{background:rgba(96,165,250,0.15);color:#60a5fa}
+.ptpb{background:rgba(167,139,250,0.15);color:#a78bfa}
 .dot{width:6px;height:6px;border-radius:50%;background:#22c55e;flex-shrink:0}
 .dot.lo{background:#f59e0b}
 .dot.de{background:#555}
@@ -278,7 +279,7 @@ main{margin-left:var(--sw);flex:1;min-height:calc(100vh - 52px)}
   </div>
   <div class="psrch">
     <div class="sinput"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input id="si" placeholder="Search software (e.g. Photoshop, Office, AutoCAD...)" oninput="ssearch(this.value)"/></div>
-    <div class="bdgs"><span class="bdg kn">Knaben Index</span></div>
+    <div class="bdgs"><span class="bdg kn" style="color:#a78bfa;background:rgba(167,139,250,0.1);border-color:rgba(167,139,250,0.2)">The Pirate Bay (Trusted only)</span></div>
   </div>
   <div class="sec"><div class="stitle">Trending software</div><div class="rlist" id="sr"><div class="ld"><div class="spn"></div>Loading trending software...</div></div></div>
 </div>
@@ -489,7 +490,7 @@ function go(p) {
 
 // ── CARD HTML ────────────────────────────────────────────────
 function card(title, link, size, seeds, src) {
-  var pc = src === 'FitGirl' ? 'pfg' : 'pkn';
+  var pc = src === 'FitGirl' ? 'pfg' : src === 'TPB' ? 'ptpb' : 'pkn';
   var s = parseInt(seeds) || 0;
   var dc = s > 100 ? '' : s > 10 ? ' lo' : ' de';
   var si = (size && size !== 'N/A') ? '<span>📦 ' + size + '</span>' : '';
@@ -510,46 +511,35 @@ var PX = [
 
 async function fetchFG(q) {
   var out = [];
-  // For trending: use RSS feed. For search: use HTML page
+  // Always use RSS - works for both trending and search
   var base = q
-    ? 'https://fitgirl-repacks.site/?s=' + encodeURIComponent(q)
+    ? 'https://fitgirl-repacks.site/?s=' + q.replace(/\s+/g,'+') + '&feed=rss2'
     : 'https://fitgirl-repacks.site/feed/';
 
   for (var i = 0; i < PX.length; i++) {
     try {
-      var url = i < 2 ? PX[i] + encodeURIComponent(base) : PX[i] + base;
-      var r = await fetch(url);
+      var proxyUrl = PX[i] + encodeURIComponent(base);
+      var r = await fetch(proxyUrl);
       if (!r.ok) continue;
-      var t = await r.text();
-      if (t.length < 200) continue;
-
-      if (!q) {
-        // Parse RSS feed for trending
-        var xml = new DOMParser().parseFromString(t, 'text/xml');
-        var items = xml.querySelectorAll('item');
-        if (!items.length) continue;
-        items.forEach(function(it) {
-          var title = it.querySelector('title') ? it.querySelector('title').textContent : '';
-          var link  = it.querySelector('link')  ? it.querySelector('link').textContent  : '';
-          var desc  = it.querySelector('description') ? it.querySelector('description').textContent : '';
-          var m = desc.match(/[\d.]+\s*GB/i);
-          if (title && link) out.push({ title: title, link: link, size: m ? m[0] : 'N/A', seeds: 'N/A' });
-        });
-      } else {
-        // Parse HTML for search results
-        var doc = new DOMParser().parseFromString(t, 'text/html');
-        var articles = doc.querySelectorAll('article.post, .post');
-        articles.forEach(function(a) {
-          var titleEl = a.querySelector('h1.entry-title a, h2.entry-title a, .entry-title a');
-          if (!titleEl) return;
-          var title = titleEl.textContent.trim();
-          var link = titleEl.getAttribute('href') || '';
-          var sizeEl = a.textContent.match(/[\d.]+\s*GB/i);
-          if (title && link) out.push({ title: title, link: link, size: sizeEl ? sizeEl[0] : 'N/A', seeds: 'N/A' });
-        });
-      }
+      var txt = await r.text();
+      if (txt.length < 200) continue;
+      var xml = new DOMParser().parseFromString(txt, 'text/xml');
+      var items = xml.querySelectorAll('item');
+      if (!items.length) continue;
+      items.forEach(function(it) {
+        var titleEl = it.querySelector('title');
+        var linkEl  = it.querySelector('link');
+        var descEl  = it.querySelector('description');
+        var title = titleEl ? titleEl.textContent.trim() : '';
+        var link  = linkEl  ? linkEl.textContent.trim()  : '';
+        var desc  = descEl  ? descEl.textContent         : '';
+        var sizeM = desc.match(/[\d.]+\s*(?:GB|MB)/i);
+        if (title && link && title !== '404' && title.length > 3) {
+          out.push({ title: title, link: link, size: sizeM ? sizeM[0] : 'N/A', seeds: 'N/A' });
+        }
+      });
       if (out.length) break;
-    } catch(e) { console.warn('FG proxy ' + i, e); }
+    } catch(e) { console.warn('FG proxy ' + i + ' failed', e); }
   }
   return out;
 }
@@ -568,7 +558,6 @@ function gsearch(q) {
   clearTimeout(GT);
   var el = document.getElementById('gr');
   if (!q.trim()) {
-    // Reset to trending
     el.innerHTML = '<div class="ld"><div class="spn"></div>Loading latest repacks...</div>';
     fetchFG('').then(function(r) {
       el.innerHTML = r.length
@@ -579,62 +568,67 @@ function gsearch(q) {
   }
   el.innerHTML = '<div class="ld"><div class="spn"></div>Searching FitGirl...</div>';
   GT = setTimeout(function() {
-    fetchFG(q).then(function(r) {
+    fetchFG(q.trim()).then(function(r) {
       el.innerHTML = r.length
         ? r.map(function(x){ return card(x.title, x.link, x.size, x.seeds, 'FitGirl'); }).join('')
-        : '<div class="em">// no results for &quot;' + q + '&quot;</div>';
+        : '<div class="em">// no results — FitGirl may not have this game yet</div>';
     });
-  }, 400);
+  }, 600);
 }
 
-// ── SOFTWARE — Knaben API ────────────────────────────────────
-var BD = ['xxx','porn','sex','hentai','jav','anal','lesbian','creampie','uncensored','mosaic'];
+// ── SOFTWARE — apibay.org cat=300 (PC Applications) ────────
+var BADW = ['xxx','porn','sex','hentai','jav','anal','lesbian','creampie','uncensored','mosaic'];
 function safe(t) {
   var l = t.toLowerCase();
-  for (var i = 0; i < BD.length; i++) if (l.indexOf(BD[i]) > -1) return false;
-  for (var i = 0; i < t.length; i++) { var c = t.charCodeAt(i); if (c >= 0x3000 && c <= 0x9fff) return false; }
+  for (var i=0;i<BADW.length;i++) if(l.indexOf(BADW[i])>-1) return false;
+  for (var i=0;i<t.length;i++){var c=t.charCodeAt(i);if(c>=0x3000&&c<=0x9fff)return false;}
   return true;
 }
 
-async function fetchKN(q) {
+async function fetchSW(q) {
   var out = [];
-  // Knaben category IDs for software: 0=PC/Windows software
-  var body = JSON.stringify({
-    search_type: 'all',
-    search_field: 'title',
-    query: q + ' crack',
-    size: 30,
-    from: 0,
-    orderBy: 'seeders',
-    order: 'desc'
-  });
-  var endpoints = [
-    'https://api.knaben.eu/v1',
-    'https://corsproxy.io/?' + encodeURIComponent('https://api.knaben.eu/v1')
+  // apibay.org is TPB's official JSON API - cat=300 = PC Applications
+  var apiUrl = 'https://apibay.org/q.php?q=' + encodeURIComponent(q + ' crack') + '&cat=300';
+  var proxies = [
+    apiUrl,  // try direct first (apibay has CORS headers)
+    'https://corsproxy.io/?' + encodeURIComponent(apiUrl),
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent(apiUrl)
   ];
-  // Extra keywords that indicate it's actually software
-  var SW = ['crack','cracked','activated','activation','keygen','patch','portable','pre-activated','full version','setup','installer','x64','x86','win','windows','macos','multilingual','repack','final','pro','enterprise','professional'];
-  for (var i = 0; i < endpoints.length; i++) {
+  var TRACKERS = '&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=udp%3A%2F%2Fopen.tracker.cl%3A1337&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A6969';
+
+  for (var p = 0; p < proxies.length; p++) {
     try {
-      var r = await fetch(endpoints[i], { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body });
+      var r = await fetch(proxies[p]);
       if (!r.ok) continue;
-      var d = await r.json();
-      var hits = (d.hits || []).filter(function(x){
-        var t = x.title || '';
-        if (!safe(t)) return false;
-        var tl = t.toLowerCase();
-        return SW.some(function(k){ return tl.indexOf(k) > -1; });
+      var data = await r.json();
+      // apibay returns [{name:"No results returned",...}] when empty
+      if (!Array.isArray(data) || !data.length) continue;
+      if (data[0].name === 'No results returned') continue;
+
+      // Filter: trusted uploaders only (status 1=VIP, 2=Trusted, 3=Admin) + safe title
+      var trusted = data.filter(function(x) {
+        return parseInt(x.status||0) >= 1 && safe(x.name||'');
       });
-      if (!hits.length) continue;
-      hits.slice(0, 10).forEach(function(x) {
-        var b = parseInt(x.bytes || 0);
-        var gb = (b / 1073741824).toFixed(2);
-        var size = gb >= 1 ? gb + ' GB' : (b / 1048576).toFixed(1) + ' MB';
-        var mag = 'magnet:?xt=urn:btih:' + x.hash + '&dn=' + encodeURIComponent(x.title) + '&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337';
-        out.push({ title: x.title, link: mag, size: size, seeds: String(x.seeders || 0) });
+      // If no trusted results, use all results that pass safety check
+      var hits = trusted.length ? trusted : data.filter(function(x){ return safe(x.name||''); });
+
+      // Sort by seeders
+      hits.sort(function(a,b){ return parseInt(b.seeders||0)-parseInt(a.seeders||0); });
+      hits.slice(0,10).forEach(function(x) {
+        var bytes = parseInt(x.size||0);
+        var gb = (bytes/1073741824).toFixed(2);
+        var size = gb>=1 ? gb+' GB' : (bytes/1048576).toFixed(1)+' MB';
+        var mag = 'magnet:?xt=urn:btih:'+x.info_hash+'&dn='+encodeURIComponent(x.name)+TRACKERS;
+        var badge = x.status=='1'?'👑 VIP':x.status=='2'?'🟣 Trusted':x.status=='3'?'🟢 Admin':'';
+        out.push({
+          title: (badge?badge+' ':'')+x.name,
+          link: mag,
+          size: size,
+          seeds: String(x.seeders||0)
+        });
       });
       if (out.length) break;
-    } catch(e) { console.warn('KN endpoint ' + i, e); }
+    } catch(e) { console.warn('SW proxy '+p+' failed', e); }
   }
   return out;
 }
@@ -642,20 +636,12 @@ async function fetchKN(q) {
 function loadSoft() {
   var el = document.getElementById('sr');
   el.innerHTML = '<div class="ld"><div class="spn"></div>Loading trending software...</div>';
-  // Search for popular software to show as trending
-  var trending = ['adobe photoshop 2024 crack', 'microsoft office 2024 activated', 'autocad 2024 crack', 'windows 11 activated'];
-  var idx = Math.floor(Math.random() * trending.length);
-  fetchKN(trending[idx]).then(function(r) {
-    if (r.length) {
-      el.innerHTML = r.map(function(x){ return card(x.title, x.link, x.size, x.seeds, 'Knaben'); }).join('');
-    } else {
-      // try another query
-      fetchKN('crack activated setup x64').then(function(r2) {
-        el.innerHTML = r2.length
-          ? r2.map(function(x){ return card(x.title, x.link, x.size, x.seeds, 'Knaben'); }).join('')
-          : '<div class="em">// type above to search for software</div>';
-      });
-    }
+  var queries = ['adobe photoshop 2024', 'microsoft office 2024', 'autocad 2024', 'windows 11'];
+  var q = queries[Math.floor(Math.random()*queries.length)];
+  fetchSW(q).then(function(r) {
+    el.innerHTML = r.length
+      ? r.map(function(x){ return card(x.title, x.link, x.size, x.seeds, 'TPB'); }).join('')
+      : '<div class="em">// type above to search for software</div>';
   });
 }
 
@@ -669,12 +655,12 @@ function ssearch(q) {
   }
   el.innerHTML = '<div class="ld"><div class="spn"></div>Searching...</div>';
   ST = setTimeout(function() {
-    fetchKN(q).then(function(r) {
+    fetchSW(q.trim()).then(function(r) {
       el.innerHTML = r.length
-        ? r.map(function(x){ return card(x.title, x.link, x.size, x.seeds, 'Knaben'); }).join('')
-        : '<div class="em">// no results for &quot;' + q + '&quot; — try different keywords</div>';
+        ? r.map(function(x){ return card(x.title, x.link, x.size, x.seeds, 'TPB'); }).join('')
+        : '<div class="em">// no results for &quot;'+q+'&quot; — try different keywords</div>';
     });
-  }, 400);
+  }, 600);
 }
 
 // ── OVERLAY ─────────────────────────────────────────────────
