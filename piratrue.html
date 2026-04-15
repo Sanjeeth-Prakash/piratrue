@@ -549,7 +549,16 @@ function loadGames() {
 function gsearch(q) {
   clearTimeout(GT);
   var el = document.getElementById('gr');
-  if (!q.trim()) { GL = false; loadGames(); GL = true; return; }
+  if (!q.trim()) {
+    // Reset to trending
+    el.innerHTML = '<div class="ld"><div class="spn"></div>Loading latest repacks...</div>';
+    fetchFG('').then(function(r) {
+      el.innerHTML = r.length
+        ? r.map(function(x){ return card(x.title, x.link, x.size, x.seeds, 'FitGirl'); }).join('')
+        : '<div class="em">// could not load</div>';
+    });
+    return;
+  }
   el.innerHTML = '<div class="ld"><div class="spn"></div>Searching FitGirl...</div>';
   GT = setTimeout(function() {
     fetchFG(q).then(function(r) {
@@ -571,18 +580,35 @@ function safe(t) {
 
 async function fetchKN(q) {
   var out = [];
-  // Try direct first, then proxied
+  // Knaben category IDs for software: 0=PC/Windows software
+  var body = JSON.stringify({
+    search_type: 'all',
+    search_field: 'title',
+    query: q,
+    size: 30,
+    from: 0,
+    orderBy: 'seeders',
+    order: 'desc',
+    categories: ['pc']
+  });
   var endpoints = [
-    { url: 'https://api.knaben.eu/v1', proxy: false },
-    { url: 'https://corsproxy.io/?' + encodeURIComponent('https://api.knaben.eu/v1'), proxy: true }
+    'https://api.knaben.eu/v1',
+    'https://corsproxy.io/?' + encodeURIComponent('https://api.knaben.eu/v1')
   ];
-  var body = JSON.stringify({ search_type: 'all', search_field: 'title', query: q + ' crack activated', size: 20, from: 0, orderBy: 'seeders', order: 'desc' });
+  // Extra keywords that indicate it's actually software
+  var SW = ['crack','cracked','activated','activation','keygen','patch','portable','pre-activated','full version','setup','installer','x64','x86','win','windows','macos','multilingual'];
   for (var i = 0; i < endpoints.length; i++) {
     try {
-      var r = await fetch(endpoints[i].url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body });
+      var r = await fetch(endpoints[i], { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body });
       if (!r.ok) continue;
       var d = await r.json();
-      var hits = (d.hits || []).filter(function(x){ return safe(x.title || ''); });
+      var hits = (d.hits || []).filter(function(x){
+        var t = x.title || '';
+        if (!safe(t)) return false;
+        // must look like software - check for common software keywords
+        var tl = t.toLowerCase();
+        return SW.some(function(k){ return tl.indexOf(k) > -1; });
+      });
       if (!hits.length) continue;
       hits.slice(0, 10).forEach(function(x) {
         var b = parseInt(x.bytes || 0);
@@ -591,7 +617,7 @@ async function fetchKN(q) {
         var mag = 'magnet:?xt=urn:btih:' + x.hash + '&dn=' + encodeURIComponent(x.title) + '&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337';
         out.push({ title: x.title, link: mag, size: size, seeds: String(x.seeders || 0) });
       });
-      break;
+      if (out.length) break;
     } catch(e) { console.warn('KN endpoint ' + i, e); }
   }
   return out;
@@ -600,23 +626,37 @@ async function fetchKN(q) {
 function loadSoft() {
   var el = document.getElementById('sr');
   el.innerHTML = '<div class="ld"><div class="spn"></div>Loading trending software...</div>';
-  fetchKN('adobe photoshop office autocad').then(function(r) {
-    el.innerHTML = r.length
-      ? r.map(function(x){ return card(x.title, x.link, x.size, x.seeds, 'Knaben'); }).join('')
-      : '<div class="em">// could not load — try searching manually above</div>';
+  // Search for popular software to show as trending
+  var trending = ['adobe photoshop 2024 crack', 'microsoft office 2024 activated', 'autocad 2024 crack', 'windows 11 activated'];
+  var idx = Math.floor(Math.random() * trending.length);
+  fetchKN(trending[idx]).then(function(r) {
+    if (r.length) {
+      el.innerHTML = r.map(function(x){ return card(x.title, x.link, x.size, x.seeds, 'Knaben'); }).join('');
+    } else {
+      // try another query
+      fetchKN('crack activated setup x64').then(function(r2) {
+        el.innerHTML = r2.length
+          ? r2.map(function(x){ return card(x.title, x.link, x.size, x.seeds, 'Knaben'); }).join('')
+          : '<div class="em">// type above to search for software</div>';
+      });
+    }
   });
 }
 
 function ssearch(q) {
   clearTimeout(ST);
   var el = document.getElementById('sr');
-  if (!q.trim()) { SL = false; loadSoft(); SL = true; return; }
+  if (!q.trim()) {
+    el.innerHTML = '<div class="ld"><div class="spn"></div>Loading trending software...</div>';
+    loadSoft();
+    return;
+  }
   el.innerHTML = '<div class="ld"><div class="spn"></div>Searching...</div>';
   ST = setTimeout(function() {
     fetchKN(q).then(function(r) {
       el.innerHTML = r.length
         ? r.map(function(x){ return card(x.title, x.link, x.size, x.seeds, 'Knaben'); }).join('')
-        : '<div class="em">// no results for &quot;' + q + '&quot;</div>';
+        : '<div class="em">// no results for &quot;' + q + '&quot; — try different keywords</div>';
     });
   }, 400);
 }
