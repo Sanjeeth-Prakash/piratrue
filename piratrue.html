@@ -502,44 +502,51 @@ function card(title, link, size, seeds, src) {
     + '<div class="rr">' + dt + '<span class="pill ' + pc + '">' + src + '</span></div></a>';
 }
 
-// ── GAMES — FitGirl RSS ─────────────────────────────────────
+// ── GAMES — apibay cat=400 (PC Games), FitGirl only ────────
 var PX = [
   'https://corsproxy.io/?',
-  'https://api.allorigins.win/raw?url=',
-  'https://thingproxy.freeboard.io/fetch/'
+  'https://api.allorigins.win/raw?url='
 ];
+var TRACKERS = '&tr=udp%3A%2F%2Ftracker.opentrackr.org%3A1337&tr=udp%3A%2F%2Fopen.tracker.cl%3A1337';
 
 async function fetchFG(q) {
   var out = [];
-  // Always use RSS - works for both trending and search
-  var base = q
-    ? 'https://fitgirl-repacks.site/?s=' + q.replace(/\s+/g,'+') + '&feed=rss2'
-    : 'https://fitgirl-repacks.site/feed/';
+  // cat=400 = PC Games on TPB. Filter username for fitgirl repacks.
+  var query = q ? q.replace(/\s+/g, '+') : 'repack';
+  var apiUrl = 'https://apibay.org/q.php?q=' + encodeURIComponent(q || 'fitgirl repack') + '&cat=400';
+  var proxies = [
+    apiUrl,
+    'https://corsproxy.io/?' + encodeURIComponent(apiUrl),
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent(apiUrl)
+  ];
 
-  for (var i = 0; i < PX.length; i++) {
+  for (var p = 0; p < proxies.length; p++) {
     try {
-      var proxyUrl = PX[i] + encodeURIComponent(base);
-      var r = await fetch(proxyUrl);
+      var r = await fetch(proxies[p]);
       if (!r.ok) continue;
-      var txt = await r.text();
-      if (txt.length < 200) continue;
-      var xml = new DOMParser().parseFromString(txt, 'text/xml');
-      var items = xml.querySelectorAll('item');
-      if (!items.length) continue;
-      items.forEach(function(it) {
-        var titleEl = it.querySelector('title');
-        var linkEl  = it.querySelector('link');
-        var descEl  = it.querySelector('description');
-        var title = titleEl ? titleEl.textContent.trim() : '';
-        var link  = linkEl  ? linkEl.textContent.trim()  : '';
-        var desc  = descEl  ? descEl.textContent         : '';
-        var sizeM = desc.match(/[\d.]+\s*(?:GB|MB)/i);
-        if (title && link && title !== '404' && title.length > 3) {
-          out.push({ title: title, link: link, size: sizeM ? sizeM[0] : 'N/A', seeds: 'N/A' });
-        }
+      var data = await r.json();
+      if (!Array.isArray(data) || !data.length) continue;
+      if (data[0].name === 'No results returned') continue;
+
+      // Prefer FitGirl uploads, fall back to any trusted uploader
+      var fitgirl = data.filter(function(x){
+        return (x.username||'').toLowerCase().indexOf('fitgirl') > -1;
+      });
+      var hits = fitgirl.length ? fitgirl : data.filter(function(x){
+        return parseInt(x.status||0) >= 1;
+      });
+      if (!hits.length) hits = data; // last resort: show all
+
+      hits.sort(function(a,b){ return parseInt(b.seeders||0)-parseInt(a.seeders||0); });
+      hits.slice(0,12).forEach(function(x) {
+        var bytes = parseInt(x.size||0);
+        var gb = (bytes/1073741824).toFixed(1);
+        var size = gb >= 1 ? gb+' GB' : (bytes/1048576).toFixed(0)+' MB';
+        var mag = 'magnet:?xt=urn:btih:'+x.info_hash+'&dn='+encodeURIComponent(x.name)+TRACKERS;
+        out.push({ title: x.name, link: mag, size: size, seeds: String(x.seeders||0) });
       });
       if (out.length) break;
-    } catch(e) { console.warn('FG proxy ' + i + ' failed', e); }
+    } catch(e) { console.warn('FG proxy '+p+' failed', e); }
   }
   return out;
 }
@@ -559,21 +566,17 @@ function gsearch(q) {
   var el = document.getElementById('gr');
   if (!q.trim()) {
     el.innerHTML = '<div class="ld"><div class="spn"></div>Loading latest repacks...</div>';
-    fetchFG('').then(function(r) {
-      el.innerHTML = r.length
-        ? r.map(function(x){ return card(x.title, x.link, x.size, x.seeds, 'FitGirl'); }).join('')
-        : '<div class="em">// could not load</div>';
-    });
+    loadGames();
     return;
   }
-  el.innerHTML = '<div class="ld"><div class="spn"></div>Searching FitGirl...</div>';
+  el.innerHTML = '<div class="ld"><div class="spn"></div>Searching...</div>';
   GT = setTimeout(function() {
     fetchFG(q.trim()).then(function(r) {
       el.innerHTML = r.length
         ? r.map(function(x){ return card(x.title, x.link, x.size, x.seeds, 'FitGirl'); }).join('')
-        : '<div class="em">// no results — FitGirl may not have this game yet</div>';
+        : '<div class="em">// no results found for &quot;'+q+'&quot;</div>';
     });
-  }, 600);
+  }, 500);
 }
 
 // ── SOFTWARE — apibay.org cat=300 (PC Applications) ────────
