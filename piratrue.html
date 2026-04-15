@@ -510,26 +510,44 @@ var PX = [
 
 async function fetchFG(q) {
   var out = [];
+  // For trending: use RSS feed. For search: use HTML page
   var base = q
-    ? 'https://fitgirl-repacks.site/?s=' + encodeURIComponent(q) + '&feed=rss2'
+    ? 'https://fitgirl-repacks.site/?s=' + encodeURIComponent(q)
     : 'https://fitgirl-repacks.site/feed/';
+
   for (var i = 0; i < PX.length; i++) {
     try {
       var url = i < 2 ? PX[i] + encodeURIComponent(base) : PX[i] + base;
       var r = await fetch(url);
       if (!r.ok) continue;
       var t = await r.text();
-      if (t.length < 100) continue;
-      var xml = new DOMParser().parseFromString(t, 'text/xml');
-      var items = xml.querySelectorAll('item');
-      if (!items.length) continue;
-      items.forEach(function(it) {
-        var title = it.querySelector('title') ? it.querySelector('title').textContent : '';
-        var link  = it.querySelector('link')  ? it.querySelector('link').textContent  : '';
-        var desc  = it.querySelector('description') ? it.querySelector('description').textContent : '';
-        var m = desc.match(/[\d.]+\s*GB/i);
-        if (title && link) out.push({ title: title, link: link, size: m ? m[0] : 'N/A', seeds: 'N/A' });
-      });
+      if (t.length < 200) continue;
+
+      if (!q) {
+        // Parse RSS feed for trending
+        var xml = new DOMParser().parseFromString(t, 'text/xml');
+        var items = xml.querySelectorAll('item');
+        if (!items.length) continue;
+        items.forEach(function(it) {
+          var title = it.querySelector('title') ? it.querySelector('title').textContent : '';
+          var link  = it.querySelector('link')  ? it.querySelector('link').textContent  : '';
+          var desc  = it.querySelector('description') ? it.querySelector('description').textContent : '';
+          var m = desc.match(/[\d.]+\s*GB/i);
+          if (title && link) out.push({ title: title, link: link, size: m ? m[0] : 'N/A', seeds: 'N/A' });
+        });
+      } else {
+        // Parse HTML for search results
+        var doc = new DOMParser().parseFromString(t, 'text/html');
+        var articles = doc.querySelectorAll('article.post, .post');
+        articles.forEach(function(a) {
+          var titleEl = a.querySelector('h1.entry-title a, h2.entry-title a, .entry-title a');
+          if (!titleEl) return;
+          var title = titleEl.textContent.trim();
+          var link = titleEl.getAttribute('href') || '';
+          var sizeEl = a.textContent.match(/[\d.]+\s*GB/i);
+          if (title && link) out.push({ title: title, link: link, size: sizeEl ? sizeEl[0] : 'N/A', seeds: 'N/A' });
+        });
+      }
       if (out.length) break;
     } catch(e) { console.warn('FG proxy ' + i, e); }
   }
@@ -584,19 +602,18 @@ async function fetchKN(q) {
   var body = JSON.stringify({
     search_type: 'all',
     search_field: 'title',
-    query: q,
+    query: q + ' crack',
     size: 30,
     from: 0,
     orderBy: 'seeders',
-    order: 'desc',
-    categories: ['pc']
+    order: 'desc'
   });
   var endpoints = [
     'https://api.knaben.eu/v1',
     'https://corsproxy.io/?' + encodeURIComponent('https://api.knaben.eu/v1')
   ];
   // Extra keywords that indicate it's actually software
-  var SW = ['crack','cracked','activated','activation','keygen','patch','portable','pre-activated','full version','setup','installer','x64','x86','win','windows','macos','multilingual'];
+  var SW = ['crack','cracked','activated','activation','keygen','patch','portable','pre-activated','full version','setup','installer','x64','x86','win','windows','macos','multilingual','repack','final','pro','enterprise','professional'];
   for (var i = 0; i < endpoints.length; i++) {
     try {
       var r = await fetch(endpoints[i], { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body });
@@ -605,7 +622,6 @@ async function fetchKN(q) {
       var hits = (d.hits || []).filter(function(x){
         var t = x.title || '';
         if (!safe(t)) return false;
-        // must look like software - check for common software keywords
         var tl = t.toLowerCase();
         return SW.some(function(k){ return tl.indexOf(k) > -1; });
       });
