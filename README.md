@@ -1,13 +1,6 @@
 <div align="center">
 
-```
-██████╗ ██╗██████╗  █████╗ ████████╗██████╗ ██╗   ██╗███████╗
-██╔══██╗██║██╔══██╗██╔══██╗╚══██╔══╝██╔══██╗██║   ██║██╔════╝
-██████╔╝██║██████╔╝███████║   ██║   ██████╔╝██║   ██║█████╗  
-██╔═══╝ ██║██╔══██╗██╔══██║   ██║   ██╔══██╗██║   ██║██╔══╝  
-██║     ██║██║  ██║██║  ██║   ██║   ██║  ██║╚██████╔╝███████╗
-╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝  ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
-```
+# PIRATRUE
 
 **Piracy Is True Freedom.**  
 *Because if buying doesn't mean owning, piracy isn't stealing.*
@@ -29,22 +22,24 @@ PIRATRUE doesn't host a single file. It aggregates and links to trusted sources 
 
 Inspired by [FMHY](https://fmhy.net) but with a brutalist design identity and live search built in.
 
+**[→ Visit PIRATRUE](https://sanjeeth-prakash.github.io/piratrue/piratrue.html)**
+
 ---
 
 ## Features
 
-| Feature | How it works |
+| Feature | Description |
 |---|---|
-| 🎮 **Game Repacks** | Live search via The Pirate Bay `cat=400`, filtered to FitGirl uploads |
-| 🛠️ **Software & Cracks** | Live search via The Pirate Bay `cat=300`, VIP/Trusted/Admin only |
-| 🎬 **Streaming** | Curated list of free streaming sites |
-| 🎵 **Music** | Free streaming and download tools |
+| 🎮 **Game Repacks** | Live search across FitGirl repacks with direct magnet links |
+| 🛠️ **Software & Cracks** | Live search — VIP and Trusted uploaders only |
+| 🎬 **Streaming** | Curated list of free streaming sites for movies, TV and anime |
+| 🎵 **Music** | Free streaming and lossless download tools |
 | 📚 **Books** | LibGen, Z-Library, Anna's Archive and more |
 | 🛡️ **Privacy & Adblock** | Essential tools before you do anything online |
-| 📱 **Android & iOS** | Modded APKs, ReVanced, sideloading guides |
+| 📱 **Android & iOS** | Modded APKs, ReVanced, sideloading tools |
 | 🤖 **AI Tools** | Free AI chatbots and image generators |
-| 🌊 **Torrenting** | Client downloads and indexer links |
-| ☠️ **Unsafe Sites** | Malware blacklist sourced from FMHY |
+| 🌊 **Torrenting** | Client downloads and torrent indexer links |
+| ☠️ **Unsafe Sites** | Malware blacklist so you know what to avoid |
 
 ---
 
@@ -52,78 +47,36 @@ Inspired by [FMHY](https://fmhy.net) but with a brutalist design identity and li
 
 ### Game Repacks
 ```
-User searches "Red Dead Redemption"
+You search "Red Dead Redemption"
         ↓
-apibay.org/q.php?q=red+dead+redemption&cat=400
+Searches PC Games category on TPB
         ↓
-Filter results where username = "fitgirl"
+Filters results to FitGirl uploads only
         ↓
-Sort by seeders → return magnet links
+Returns direct magnet links sorted by seeders
 ```
 
 ### Software & Cracks
 ```
-User searches "Photoshop"
+You search "Photoshop"
         ↓
-apibay.org/q.php?q=photoshop+crack&cat=300
+Searches PC Applications category on TPB
         ↓
-Filter: status >= 1 (VIP / Trusted / Admin only)
+Filters: VIP / Trusted / Admin uploaders only
         ↓
-Sort by seeders → return magnet links
+Returns direct magnet links sorted by seeders
 ```
 
-The seed count dots you see on results:
+The seed dots on results mean:
 - 🟢 **Green** = 100+ seeders — fast download
 - 🟡 **Yellow** = 10–100 seeders — slower but works
-- ⚫ **Grey** = 0 seeders — dead
+- ⚫ **Grey** = dead torrent
 
 ---
 
-## Tech stack
-
-```
-Frontend    →  Pure HTML/CSS/JS — single file, no frameworks
-Hosting     →  GitHub Pages (free)
-Game search →  apibay.org JSON API (browser-side, no backend)
-SW search   →  apibay.org JSON API (browser-side, no backend)
-CORS proxy  →  corsproxy.io as fallback
-Backend     →  FastAPI on Render (for enhanced FitGirl magnet extraction)
-```
-
-Zero dependencies. No npm. No build step. Just one HTML file.
-
----
-
-## Run locally
-
-```bash
-# Just open the file — no server needed
-open piratrue.html
-```
-
-For the backend (optional):
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn main:app --reload
-```
-
----
-
-## Deploy your own
-
-1. Fork this repo
-2. Go to **Settings → Pages**
-3. Set source to `main` branch, root directory
-4. Your site is live at `https://yourusername.github.io/piratrue/piratrue.html`
-
----
-
-## Unsafe sites list
+## Unsafe Sites List
 
 The ☠️ Unsafe Sites page lists sites confirmed to distribute malware — OceanOfGames, IGG Games, FileCR, GetIntoPC, SadeemPC, uTorrent and more.
-
-Source: [FMHY Unsafe Sites](https://fmhy.net/unsafesites) + community reports.
 
 Install [FMHY SafeGuard](https://github.com/fmhy/FMHY-SafeGuard) to get these flagged automatically in your browser.
 
@@ -137,8 +90,7 @@ PIRATRUE does not host, store, or distribute any copyrighted content. All links 
 
 <div align="center">
 
-**PIRA`TRUE`** — this site does not host any files.
-
+**PIRATRUE** — this site does not host any files.  
 *Made for broke people everywhere.*
 
 </div>
