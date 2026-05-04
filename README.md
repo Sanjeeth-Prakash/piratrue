@@ -74,14 +74,6 @@ The seed dots on results mean:
 
 ---
 
-## Unsafe Sites List
-
-The ☠️ Unsafe Sites page lists sites confirmed to distribute malware — OceanOfGames, IGG Games, FileCR, GetIntoPC, SadeemPC, uTorrent and more.
-
-Install [FMHY SafeGuard](https://github.com/fmhy/FMHY-SafeGuard) to get these flagged automatically in your browser.
-
----
-
 ## Browser Safety Extension (PiraTrue SafetyNet)
 
 Want an extra layer of safety while browsing piracy / repack sites?
