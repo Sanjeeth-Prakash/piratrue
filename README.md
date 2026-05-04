@@ -82,6 +82,20 @@ Install [FMHY SafeGuard](https://github.com/fmhy/FMHY-SafeGuard) to get these fl
 
 ---
 
+## Browser Safety Extension (PiraTrue SafetyNet)
+
+Want an extra layer of safety while browsing piracy / repack sites?
+
+Check out **[PiraTrue SafetyNet](https://github.com/Sanjeeth-Prakash/piratrue-safetynet)** – a small browser extension that:
+
+- Shows 🟢 **TRUSTED**, 🔴 **UNTRUSTED**, or 🟡 **UNKNOWN** for the current site.
+- Uses curated trusted / unsafe lists inspired by r/Piracy resources.
+- Runs fully locally in your browser (no tracking, no external requests).
+
+You can load it manually in Chrome / Edge / Brave via **Developer mode** by following the instructions in that repo’s README.
+
+---
+
 ## Disclaimer
 
 PIRATRUE does not host, store, or distribute any copyrighted content. All links point to external third-party sources. This project is for educational and informational purposes only. Use at your own risk and in accordance with the laws of your country.
